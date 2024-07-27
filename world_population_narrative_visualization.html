@@ -14,7 +14,7 @@
 body {
     margin: 0px; 
     padding: 0px;
-    background-color: rgb(243, 237, 237);
+    /* background-color: rgb(243, 237, 237); */
 }
 
     .center{
@@ -85,6 +85,7 @@ body {
  var data;
  var dataPerYear;
  var region;
+ var year=1950;
 
     async function init(){
     console.log('data init running, waiting for data HTTP request')
@@ -253,7 +254,9 @@ svg.append("text")
         .attr("text-anchor", "middle")  
         .style("font-size", "16px") 
         .style("text-decoration", "underline")  
-        .text("Birth Rate to Death Rate Scaterplot");
+        .text("Birth Rate to Death Rate Scaterplot,"+" YEAR: "+year);
+
+
 
 console.log ('end of JS init')
 }
