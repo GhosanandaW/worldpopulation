@@ -1,5 +1,7 @@
 # World Population
-Data for a dashboard explaining the current state of world population, growth, and demographic and analysis on it change trend. The data has been manipulated with logic as follows:
+Data for a narrative visualization and dashboard explaining the current state of world population, growth, and demographic and analysis on it change trend.
+
+The data has been manipulated with logic as follows:
 1. WPP2022_GEN_F01_DEMOGRAPHIC_INDICATORS_COMPACT_REV1_manipulated is the data source providing the country names, crude birth rate, crude death rate, and growth percentage information. The manipulation on this data includes: 
    1. Deleted UN logo and header (not directly pertaining to the data).
    2. Deleted cascaded header to result in Tableau compatible data source.
@@ -9,4 +11,5 @@ Data for a dashboard explaining the current state of world population, growth, a
    1. Created additional attribute "gender" to result in relational-like data source that is compatible with Tableau.
    2. Deleted UN logo and header (not directly pertaining to the data).
    3. Deleted cascaded header to result in Tableau compatible data source.
-   4. Pivoted the "age" attribute from each files to result in breakdown of the demographic for each given year.
+   4. Pivoted the "age" attribute from each file to result in breakdown of the demographic for each given year.
+4. The data mentioned were joined into joined_world_population_data
