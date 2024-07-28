@@ -101,13 +101,14 @@ body {
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"></script>
 <script type="module">   
 // Parts of the codes are inspired and referred from: https://d3-graph-gallery.com/scatter.html
 // Scales and legend inspired and referred from: https://observablehq.com/@d3/continuous-scales
  var data;
  var dataPerYear;
  var region;
- var year='1950';//default value of year
+ var yearTest=['1950'];//default value of year
  var yearMartini=['1950','1965','1981','1997','2021']
  var yearsAll=[];
  var firstSceneBool=true;
@@ -122,9 +123,7 @@ var yAxisRange;
 var xAxis;
 var yAxis;
 
-
-
- async function dataRequestandInit()
+ async function dataRequestandInit(yearList)
  {
     console.log('data init running, waiting for data HTTP request')
     data=await d3.csv('./joined_world_population_data.csv');
@@ -152,7 +151,7 @@ var yAxis;
 
     //main body
 console.log('entering yearsAll loop')
-yearsAll.forEach( (eachYear)=>{
+yearList.forEach( (eachYear)=>{
     setTimeout(async () => {
   console.log("Delaying for 5 second.");
   await mainRendering(eachYear);
@@ -162,8 +161,10 @@ yearsAll.forEach( (eachYear)=>{
 )
 }
 
-dataRequestandInit();
+dataRequestandInit(yearTest);
 
+//annotation
+var type = d3.annotationCalloutCircle
 
 
     //layout
@@ -476,7 +477,7 @@ function isOverlapping(element1, element2) {
     .bandwidth(7)
     (dataPerYear.get(year))
 
-    console.log (densityData)
+    console.log ('density data is: ',densityData)
 
   // show the shape of density map
   svg.insert("g", "g")
@@ -484,8 +485,77 @@ function isOverlapping(element1, element2) {
     .selectAll("path")
     .data(densityData)
     .enter().append("path")
-      .attr("d", d3.geoPath())
-      .attr("fill", function(d) { console.log (d.value);return colorDensityMap(d.value); }).attr('opacity', "0.2")
+      .attr("d",d3.geoPath())
+      .attr("fill", function(d) { console.log (d.value,colorDensityMap(d.value),d3.geoPath()); return colorDensityMap(d.value); }).attr('opacity', "0.2")
+
+
+
+var densestContour = densityData.reduce((a, b) => a.value > b.value ? a : b);
+console.log(densestContour.coordinates[0])
+console.log(densityData)
+console.log(densestContour)
+console.log([...densestContour.coordinates[0][0]])
+
+const referenceLineData = [[0, 0], [axisSyncDomain, axisSyncDomain]]; // Adjust points as needed
+const lineGenerator2 = d3.line()
+  .x(d => d[0])
+  .y(d => d[1]);
+
+svg.append("path")
+.attr("class", "tryerLine")
+  .attr("d", lineGenerator2([...densestContour.coordinates[0][0]]))
+  .attr("stroke", "red") // Adjust color as needed
+  .attr("stroke-dasharray", "5,5"); // Optional: dashed line
+
+
+// Calculate the centroid of the densest contour
+// const centroid = d3.polygonCentroid(densestContour.coordinates[0][0]);
+const centroid = d3.polygonCentroid([...densestContour.coordinates[0][0]]);
+console.log(centroid)
+// Convert centroid coordinates to pixel coordinates
+const x = xAxis(centroid[0]);
+const y = yAxis(centroid[1]);
+
+console.log("Densest location coordinates:",x,y, centroid[0], centroid[1]);
+
+
+
+// Define annotation for densest location
+var annotations = [{
+  note: {
+    label: "Densest Location",
+    title: 'Densest number of country'
+  },
+  x: centroid[0], // Use calculated x directly
+  y: centroid[1], // Use calculated y directly
+  dy: 100,
+  dx: 250,
+  className: "show-bg",
+  subject: { radius: 50, radiusPadding: -50 },
+  color: ['red'],
+  connector:{end: "arrow"}
+}]
+
+
+const makeAnnotations = d3.annotation()
+  .editMode(true)
+  .notePadding(15)
+  .type(type)
+  .annotations(annotations)
+
+// makeAnnotations.annotations([
+//     {
+//       ...densestAnnotation,
+//       x: d => x,
+//       y: d => y,
+//     }
+//   ]);
+
+svg.append("g")
+  .attr("class", "annotation-group")
+  .call(makeAnnotations.annotations(annotations));
+
+  
 
 
 
