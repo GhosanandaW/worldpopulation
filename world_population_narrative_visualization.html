@@ -109,7 +109,10 @@ body {
  var dataPerYear;
  var region;
  var yearTest=['1950'];//default value of year
-var yearMartini=['1950','1965','1981','1997','2021']
+var yearMartini=['1950','1965','1981','1997','2021'] 
+//starting, boomer+GenX, Millenials+GenZ, Gen Alpha and beyond? --> probably continue declining
+//https://www.beresfordresearch.com/age-range-by-generation/
+
 //  var yearMartini=['1950','1975','2000','2021']
  var yearsAll=[];
  var firstSceneBool=true;
@@ -158,12 +161,12 @@ var globalCircle;
 
     //main body
 console.log('entering yearsAll loop')
-yearList.forEach( (eachYear)=>{
+yearList.map( (eachYear)=>{
     setTimeout(async () => {
-  console.log("Delaying for 5 second.");
-  await mainRendering(eachYear);
-  console.log('await for mainRendering for the year finished', eachYear)
-}, "5000")
+        await mainRendering(eachYear);
+        console.log('await for mainRendering for the year finished', eachYear)
+  console.log("Delaying for 3 second.");
+}, 5000)
 }
 )
 }
@@ -212,7 +215,7 @@ var type = d3.annotationCalloutCircle
 
          globalCircle = svg.append('circle')
           .attr('fill', 'red')
-          .attr('r', 6)
+          .attr('r', 10)
           .attr('style','position: relative; z-index: 99;')
           .raise()
 
@@ -635,7 +638,7 @@ var annotations = [{
   x: top3Centroid[2][0], // Use calculated x directly
   y: top3Centroid[2][1], // Use calculated y directly
   nx: xAxis(referencenx-0),
-  ny: yAxis(referenceny-10),
+  ny: yAxis(referenceny-5),
   className: "show-bg",
   subject: { radius: 10, radiusPadding: -10 },
   color: ['orange'],
@@ -651,7 +654,7 @@ const makeAnnotations = d3.annotation()
 
   var localAnnotationVariables= svg.append("g")
   .attr("class", "annotation-group")
-  .call(await makeAnnotations.annotations(annotations));
+  .call(await makeAnnotations.annotations(annotations)).attr("class", "dynamicComponent");
 
   //Inspired and adapted from https://stackoverflow.com/questions/70415772/d3-js-animate-a-circle-along-x-y-coordinates
   // add path
@@ -676,7 +679,7 @@ const animationPathGenerator = d3.line()
 
   const annotationTracePath = await svg.append('path')
           .attr('d', animationPathGenerator(globalMedian3Centroid))
-          .attr('stroke', 'red')
+          .attr('stroke', 'maroon')
           .attr('fill', 'none');
 
       // draw circle at initial location
@@ -688,7 +691,7 @@ const animationPathGenerator = d3.line()
       // animate
       globalCircle.raise().transition()
           .ease(d3.easeLinear)
-          .duration(5000)
+          .duration(4500)
           .attrTween('transform', translateAlong(annotationTracePath.node()));
 
       // https://bl.ocks.org/mbostock/1705868
