@@ -39,7 +39,7 @@ body {
 
     }
     .container {
-    background-color:#2E4272;
+    /* background-color:#2E4272; */
     display:flex;
     text-align: center;
   vertical-align: center;
@@ -47,11 +47,11 @@ body {
     margin-top: 2.5%;
 }
 .fixed {
-    background-color:#4F628E;
+    /* background-color:#4F628E; */
     width: 60%;
 }
 .flex-left {
-    background-color:#7887AB;
+    /* background-color:#7887AB; */
     flex-grow: 1;
 }
 
@@ -70,12 +70,12 @@ body {
 
     .narrative{
         width:20%;
-        background-color:red;
+        /* background-color:red; */
     }
 
     .rightGutter{
         width:20%;
-        background-color:yellow;
+        /* background-color:yellow; */
     }
 
 </style>
@@ -85,8 +85,7 @@ body {
 <body class="wholeBody">
 <div class="allContent"> 
     <div class="title center">
-        <h1>World Population, Growth, and Demographic Changes Throughout Time (2021 to 2021)</h1>
-        <p>Created by: Ghosananda Wijaya</p>
+        <h1>World Population, Growth, and Demographic Changes Throughout Time (1950 to 2021)</h1>
         </div>
 
     <div class="mainContainer">
@@ -108,36 +107,94 @@ body {
  var data;
  var dataPerYear;
  var region;
- var year=1950;
+ var year='1950';//default value of year
+ var yearMartini=['1950','1965','1981','1997','2021']
+ var yearsAll=[];
+ var firstSceneBool=true;
+ var circleRadiusScale;
+ var color;
+ var svg;
+ var svgLegend;
+ var xAxisDomain;
+var xAxisRange;
+var yAxisDomain;
+var yAxisRange;
+var xAxis;
+var yAxis;
 
-    async function init(){
+
+
+ async function dataRequestandInit()
+ {
     console.log('data init running, waiting for data HTTP request')
     data=await d3.csv('./joined_world_population_data.csv');
     dataPerYear=d3.group(data,d=>d.Year);
     console.log('data init running, waiting for data HTTP request')
     console.log (data);
     console.log (dataPerYear);
+        //scales
+
+    //circle scale to indicate relative size of population
+    circleRadiusScale = d3.scaleSqrt()
+    .domain([0,d3.max(data,function(d) { return d['Total Population, as of 1 July (thousands)']; })])
+    .range([0,4])
+
+    //color scale to separate by regions
+ color = d3.scaleOrdinal()
+    .domain([...Array(7).keys()])
+    .range(d3.schemeCategory10)
+
+    for (let i = 1950; i < 2022; i++) {
+        yearsAll.push(i.toString());
+}
+    
+    console.log ('overall year is: ', yearsAll)
+
+    //main body
+console.log('entering yearsAll loop')
+yearsAll.forEach( (eachYear)=>{
+    setTimeout(async () => {
+  console.log("Delaying for 5 second.");
+  await mainRendering(eachYear);
+  console.log('await for mainRendering for the year finished', eachYear)
+}, "5000")
+}
+)
+}
+
+dataRequestandInit();
+
 
 
     //layout
-    const width = 600;
-    const height = 600;
-    const marginTop = 30;
-    const marginRight = 0;
-    const marginBottom = 55;
-    const marginLeft = 60;
-    const axisSyncDomain=60;
+    var width = 600;
+    var height = 600;
+    var marginTop = 30;
+    var marginRight = 6;
+    var marginBottom = 55;
+    var marginLeft = 60;
+    var axisSyncDomain=60;
 
 
 
     //legend layout
-    const legendWidth = 200;
-    const legendHeight = height + marginTop + marginBottom
-    const legendMarginLeft=20;
-    const legendMarginRight=20;
+    var legendWidth = 200;
+    var legendHeight = height + marginTop + marginBottom
+    var legendMarginLeft=20;
+    var legendMarginRight=20;
 
+    async function mainRendering(year)
+    {
+    if (year!='1950'){
+    console.log('current year is', year);
+    firstSceneBool==false;
+    d3.selectAll(".dynamicComponent").remove();
+}
+
+    if (year=='1950'){
+    //required init
     //create svg component
-    var svg = d3.select("#D3MainContent")
+    svg = d3.select("#D3MainContent")
       .append("svg")
       .attr("class", "svgD3MainContent") 
         .attr("width", width + marginLeft + marginRight)
@@ -147,21 +204,21 @@ body {
 
 //axis setup
 // var xAxisDomain = [0, d3.max(data,function(d) { return +d['Crude Birth Rate (births per 1,000 population)']; })];
-var xAxisDomain = [0, axisSyncDomain];
+xAxisDomain = [0, axisSyncDomain];
 console.log(xAxisDomain);
 var xAxisRange=[0,width];
 console.log(xAxisRange);
 
 
 // var yAxisDomain=[0, d3.max(data,function(d) { return +d['Crude Death Rate (deaths per 1,000 population)']; })];
-var yAxisDomain=[0, axisSyncDomain];
+ yAxisDomain=[0, axisSyncDomain];
 console.log (yAxisDomain);
-var yAxisRange=[height,0];
+ yAxisRange=[height,0];
 console.log (yAxisRange);
 
 
 //create axis
-var xAxis=d3.scaleLinear().domain(xAxisDomain).range(xAxisRange);
+ xAxis=d3.scaleLinear().domain(xAxisDomain).range(xAxisRange);
 svg.append("g")
     .attr("class", "xAxis") 
     .attr("transform", `translate(0, ${height})`)
@@ -169,7 +226,7 @@ svg.append("g")
     
 
 
-var yAxis=d3.scaleLinear().domain(yAxisDomain).range(yAxisRange);
+ yAxis=d3.scaleLinear().domain(yAxisDomain).range(yAxisRange);
 svg.append("g")
     .call(d3.axisLeft(yAxis));
 
@@ -190,35 +247,22 @@ svg.append("text")
     .text('Crude Birth Rate (births per 1,000 population)')
 
 
-//color scale to separate by regions
-const color = d3.scaleOrdinal()
-    .domain([...Array(7).keys()])
-    .range(d3.schemeCategory10)
+// //color scale to separate by regions
+// const color = d3.scaleOrdinal()
+//     .domain([...Array(7).keys()])
+//     .range(d3.schemeCategory10)
 
 //circle scale to indicate relative size of population
-const circleRadiusScale = d3.scaleSqrt()
-    .domain([0,d3.max(data,function(d) { return d['Total Population, as of 1 July (thousands)']; })])
-    .range([0,4])
-
-//create data points on graph
-svg.append('g')
-    .selectAll("circle")
-    .data(dataPerYear.get('1950'))
-    .enter()
-    .append("circle")
-    .attr('cx',(d,i)=>{return xAxis(d['Crude Death Rate (deaths per 1,000 population)'])})
-    .attr('cy',(d,i)=>{return yAxis(d['Crude Birth Rate (births per 1,000 population)'])})
-    .attr('r',(d,i)=>{return circleRadiusScale(d['Total Population, as of 1 July (thousands)'])})
-    .attr("stroke", "steelblue")
-      .attr("stroke-width", 1.5)
-      .attr("fill", (d,i)=>{console.log (d['Region']);return color(d['Region'])})
+// const circleRadiusScale = d3.scaleSqrt()
+//     .domain([0,d3.max(data,function(d) { return d['Total Population, as of 1 July (thousands)']; })])
+//     .range([0,4])
 
 //create the legend for circles
 // var circleLegendValues=[0,d3.max(data,function(d) { return d['Total Population, as of 1 July (thousands)'];})]
 var circleLegendValues=[0,500000,1000000,1425862]
 console.log ('generating legend for circles size')
 
-var svgLegend = d3.select("#D3MainContent")
+svgLegend = d3.select("#D3MainContent")
 .append("svg")
 .attr("class", "svgLegend")
         .attr("width", legendWidth)
@@ -278,12 +322,53 @@ var circleLegendText=svgLegend.append("g")
 //       .attr("stroke-width", 1.5)
 //       .attr("fill", (d,i)=>{console.log (d['Region']);return color(d['Region'])})
 
+//Create increasing/declining population reference line
+const referenceLineData = [[0, 0], [axisSyncDomain, axisSyncDomain]]; // Adjust points as needed
+const lineGenerator = d3.line()
+  .x(d => xAxis(d[0]))
+  .y(d => yAxis(d[1]));
+
+svg.append("path")
+  .attr("d", lineGenerator(referenceLineData))
+  .attr("stroke", "red") // Adjust color as needed
+  .attr("stroke-dasharray", "5,5"); // Optional: dashed line
+//required init ends
+    }
+
+
+
+//MAIN DYNAMIC COMPONENT, to be destroyed for each sequence of year
+//Add graph title 
+svg.append("text")
+        .attr("x", (width / 2))             
+        .attr("y", 0 - (marginTop / 2))
+        .attr("text-anchor", "middle")
+        .attr("class", "")
+        .style("font-size", "16px") 
+        .style("text-decoration", "underline")  
+        .text("Birth Rate to Death Rate Scaterplot:"+" YEAR "+year);
+
+//create data points on graph
+svg.append('g')
+    .selectAll("circle")
+    .data(dataPerYear.get(year))
+    .enter()
+    .append("circle")
+    .attr("class", "dynamicComponent")
+    .attr('cx',(d,i)=>{return xAxis(d['Crude Death Rate (deaths per 1,000 population)'])})
+    .attr('cy',(d,i)=>{return yAxis(d['Crude Birth Rate (births per 1,000 population)'])})
+    .attr('r',(d,i)=>{return circleRadiusScale(d['Total Population, as of 1 July (thousands)'])})
+    .attr("stroke", "steelblue")
+      .attr("stroke-width", 1.5)
+      .attr("fill", (d,i)=>{console.log (d['Region']);return color(d['Region'])})
+
 //Create label for the data points
       svg.append("g")
       .attr("font-family", "sans-serif")
       .attr("font-size", 10)
+      .attr("class", "dynamicComponent")
     .selectAll("text")
-    .data(dataPerYear.get('1950'))
+    .data(dataPerYear.get(year))
     .join("text")
       .attr("dy", "0.35em")
       .attr("x", (d,i)=> {return xAxis(d['Crude Death Rate (deaths per 1,000 population)'])+7})
@@ -375,33 +460,7 @@ function isOverlapping(element1, element2) {
            bbox1.y > bbox2.y + bbox2.height);
 }
 
-//Create increasing/declining population reference line
 
-const referenceLineData = [[0, 0], [axisSyncDomain, axisSyncDomain]]; // Adjust points as needed
-const lineGenerator = d3.line()
-  .x(d => xAxis(d[0]))
-  .y(d => yAxis(d[1]));
-
-svg.append("path")
-  .attr("d", lineGenerator(referenceLineData))
-  .attr("stroke", "red") // Adjust color as needed
-  .attr("stroke-dasharray", "5,5"); // Optional: dashed line
-
-  
-// const referenceLine= d3.line()()
-// console.log ([xAxis(0), yAxis(0)],[xAxis(axisSyncDomain), yAxis(axisSyncDomain)])
-
-// const line = d3.line().context(null);
-
-// // ()d) => xAxis(axisSyncDomain/2), (d) => yAxis(axisSyncDomain/2)
-// // svg.append("g").selectAll().data(dataPerYear.get('1950')).enter().append('path').
-// // attr('class', 'reference line')
-// //         .attr("d", d3.line()
-// //         .x(function(d,i) {return 25})
-// //         .y(function(d,i) {return 25}))
-
-// console.log ([xAxis(0), yAxis(0)],[xAxis(axisSyncDomain), yAxis(axisSyncDomain)])
-// svg.append("g").selectAll('path').data([[xAxis(0), yAxis(0)],[xAxis(axisSyncDomain), yAxis(axisSyncDomain)]]).enter().append("path").attr("d", line([xAxis(0), yAxis(0)],[xAxis(axisSyncDomain), yAxis(axisSyncDomain)])).attr('stroke','black')
 
 //Create density map
   // Prepare a color palette
@@ -415,27 +474,21 @@ svg.append("path")
     .y(function(d) { console.log(d['Crude Birth Rate (births per 1,000 population)']);return yAxis(d['Crude Birth Rate (births per 1,000 population)']); })
     .size([width, height])
     .bandwidth(7)
-    (dataPerYear.get('1950'))
+    (dataPerYear.get(year))
 
     console.log (densityData)
 
   // show the shape of density map
-//   svg.insert("g", "g")
-//     .selectAll("path")
-//     .data(densityData)
-//     .enter().append("path")
-//       .attr("d", d3.geoPath())
-//       .attr("fill", function(d) { console.log (d.value);return colorDensityMap(d.value); }).attr('opacity', "0.2")
+  svg.insert("g", "g")
+  .attr("class", "dynamicComponent")
+    .selectAll("path")
+    .data(densityData)
+    .enter().append("path")
+      .attr("d", d3.geoPath())
+      .attr("fill", function(d) { console.log (d.value);return colorDensityMap(d.value); }).attr('opacity', "0.2")
 
 
-//Add graph title 
-svg.append("text")
-        .attr("x", (width / 2))             
-        .attr("y", 0 - (marginTop / 2))
-        .attr("text-anchor", "middle")  
-        .style("font-size", "16px") 
-        .style("text-decoration", "underline")  
-        .text("Birth Rate to Death Rate Scaterplot:"+" YEAR "+year);
+
 
 
 
@@ -443,9 +496,16 @@ svg.append("text")
 //Create timeline bar
 
 
-console.log ('end of JS init')
+console.log ('end of mainRendering function')
 }
-init();
+
+
+
+
+
+
+
+
 
 
 
