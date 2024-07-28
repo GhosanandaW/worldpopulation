@@ -39,9 +39,21 @@ body {
 
     }
     .container {
-        margin-top: 3%;
-    }
-
+    background-color:#2E4272;
+    display:flex;
+    text-align: center;
+  vertical-align: center;
+  align-content: center;
+    margin-top: 2.5%;
+}
+.fixed {
+    background-color:#4F628E;
+    width: 60%;
+}
+.flex-left {
+    background-color:#7887AB;
+    flex-grow: 1;
+}
 
 
     .allContent {
@@ -55,11 +67,22 @@ body {
         /* border: 3px solid green; */
         padding: 10px;
             }
+
+    .narrative{
+        width:20%;
+        background-color:red;
+    }
+
+    .rightGutter{
+        width:20%;
+        background-color:yellow;
+    }
+
 </style>
+
 </head>
 
 <body class="wholeBody">
-
 <div class="allContent"> 
     <div class="title center">
         <h1>World Population, Growth, and Demographic Changes Throughout Time (2021 to 2021)</h1>
@@ -67,12 +90,10 @@ body {
         </div>
 
     <div class="mainContainer">
-    <div class="container">
-    <div id="D3container">
-    <div id="D3contenttest" class="center" >
-    <div id="D3MainContent" class="center" ></div>
-    </div>
-    </div>
+    <div id="D3container" class="container">
+    <div id="D3Narrative" class="narrative"></div>
+    <div id="D3MainContent" class="fixed" ></div>
+    <div id="D3Misc" class="rightGutter"></div>
     </div>
     </div>
 
@@ -82,6 +103,8 @@ body {
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script type="module">   
+// Parts of the codes are inspired and referred from: https://d3-graph-gallery.com/scatter.html
+// Scales and legend inspired and referred from: https://observablehq.com/@d3/continuous-scales
  var data;
  var dataPerYear;
  var region;
@@ -100,14 +123,23 @@ body {
     const width = 600;
     const height = 600;
     const marginTop = 30;
-    const marginRight = 20;
+    const marginRight = 0;
     const marginBottom = 55;
     const marginLeft = 60;
     const axisSyncDomain=60;
 
+
+
+    //legend layout
+    const legendWidth = 200;
+    const legendHeight = height + marginTop + marginBottom
+    const legendMarginLeft=20;
+    const legendMarginRight=20;
+
     //create svg component
     var svg = d3.select("#D3MainContent")
       .append("svg")
+      .attr("class", "svgD3MainContent") 
         .attr("width", width + marginLeft + marginRight)
         .attr("height", height + marginTop + marginBottom)
       .append("g")
@@ -164,22 +196,87 @@ const color = d3.scaleOrdinal()
     .range(d3.schemeCategory10)
 
 //circle scale to indicate relative size of population
-const circleRadius = d3.scaleLinear()
+const circleRadiusScale = d3.scaleSqrt()
     .domain([0,d3.max(data,function(d) { return d['Total Population, as of 1 July (thousands)']; })])
-    .range([0,0.3])
+    .range([0,4])
 
 //create data points on graph
 svg.append('g')
-    .selectAll("dot")
+    .selectAll("circle")
     .data(dataPerYear.get('1950'))
     .enter()
     .append("circle")
     .attr('cx',(d,i)=>{return xAxis(d['Crude Death Rate (deaths per 1,000 population)'])})
     .attr('cy',(d,i)=>{return yAxis(d['Crude Birth Rate (births per 1,000 population)'])})
-    .attr('r',(d,i)=>{return circleRadius(d['Total Population, as of 1 July (thousands)'])})
+    .attr('r',(d,i)=>{return circleRadiusScale(d['Total Population, as of 1 July (thousands)'])})
     .attr("stroke", "steelblue")
       .attr("stroke-width", 1.5)
       .attr("fill", (d,i)=>{console.log (d['Region']);return color(d['Region'])})
+
+//create the legend for circles
+// var circleLegendValues=[0,d3.max(data,function(d) { return d['Total Population, as of 1 July (thousands)'];})]
+var circleLegendValues=[0,500000,1000000,1425862]
+console.log ('generating legend for circles size')
+
+var svgLegend = d3.select("#D3MainContent")
+.append("svg")
+.attr("class", "svgLegend")
+        .attr("width", legendWidth)
+        .attr("height", height + marginTop + marginBottom)
+      .append("g")
+        .attr("transform", `translate(${legendWidth/2},0)`)
+        // .attr("transform", `translate(${legendWidth/2}, ${(height+ marginTop + marginBottom)/2})`)
+
+
+console.log('circleLegendValues',circleLegendValues)
+var circleLegend = svgLegend.append("g")
+    .attr("class", "circleLegend")
+    .selectAll('circle')
+    .data(circleLegendValues)
+    .enter()
+    .append("g")
+    .append("circle")
+    .attr("cx", 0)
+    .attr("cy", (d) => {return (legendHeight - marginBottom - circleRadiusScale(d))})
+    .attr("r",  (d) => {return circleRadiusScale(d)})
+    .attr("stroke", "black")
+    .attr("stroke-width", 1.5)
+    .attr("fill", "none");
+    
+var circleLegendText=svgLegend.append("g")
+    .attr("style", "dominant-baseline: hanging; text-anchor: middle;") // Text alignment and styling
+    .attr("font-size", 10)
+    .selectAll("text")
+    .data(circleLegendValues)
+    .join("text")
+    .attr("dy", "0.35em")
+    .attr("x",0)
+    .attr("y", d => legendHeight - marginBottom - 2 * circleRadiusScale(d) + 3) // Position text below circle
+    .text(d=>d); // Display the data value
+
+    var circleLegendTitle=svgLegend.append("g")
+    .attr("class", "circleLegendTitle")
+    .attr("style", "dominant-baseline: hanging; text-anchor: middle;  font-weight: 900;") // Text alignment and styling
+    .attr("font-size", 10)
+    .selectAll("text")
+    .data([circleLegendValues[circleLegendValues.length-1]])
+    .join("text")
+    .attr("dy", "0.35em")
+    .attr("x",0)
+    .attr("y", d => legendHeight - marginBottom - 2 * circleRadiusScale(d) + 3 - 25) // Position text below circle
+    .text('Size of Population'); // Display the data value
+
+// svg.append('g')
+//     .selectAll("circle")
+//     .data(dataPerYear.get('1950'))
+//     .enter()
+//     .append("circle")
+//     .attr('cx',(d,i)=>{return xAxis(d['Crude Death Rate (deaths per 1,000 population)'])})
+//     .attr('cy',(d,i)=>{return yAxis(d['Crude Birth Rate (births per 1,000 population)'])})
+//     .attr('r',(d,i)=>{return circleRadius(d['Total Population, as of 1 July (thousands)'])})
+//     .attr("stroke", "steelblue")
+//       .attr("stroke-width", 1.5)
+//       .attr("fill", (d,i)=>{console.log (d['Region']);return color(d['Region'])})
 
 //Create label for the data points
       svg.append("g")
@@ -191,8 +288,92 @@ svg.append('g')
       .attr("dy", "0.35em")
       .attr("x", (d,i)=> {return xAxis(d['Crude Death Rate (deaths per 1,000 population)'])+7})
       .attr("y", (d,i)=> {return yAxis(d['Crude Birth Rate (births per 1,000 population)'])})
-      .text(d => d['Region, subregion, country or area *']);
+      .text(d => d['Region, subregion, country or area *'])
+      .each(function(d, i, nodes) {
+    const label = this;
+    const otherLabels = nodes.slice(0, i);
+    // const circle = svg.selectAll('circle').filter(circleData => {console.log (circleData,d,circleData === d); return circleData === d}); 
+    // console.log (svg.selectAll('circle').each((child)=>{console.log(child,d,child===d)}))
+    // console.log (svg.selectAll('circle'))
+    // console.log (circle)
+    // console.log(d)
+    // console.log (d['Region, subregion, country or area *'])
+    // console.log (circle.size())
+    // console.log (circle.nodes())
+    // console.log (d)
+    const circleNodes = svg.selectAll('circle').nodes()
+    console.log (circleNodes)
 
+
+    // if (circle.size() === 1) { // Check if circle exists
+    //   var circleBBox = circle.node().getBBox();
+    //   console.log (circleBBox)
+    //   // ... your code for checking overlap and adjusting positions
+    // } 
+    // else {
+    //   console.error("Circle not found for label:", d);
+    // }
+    let adjusted = false;
+
+    // Adjust label position if overlapping
+    otherLabels.forEach(otherLabel => {
+      if (isOverlapping(label, otherLabel)) {
+        // Adjust label position here (e.g., move it down or to the side)
+        console.log ('is overlapping between label and otherLabel', label, otherLabel)
+        label.setAttribute('y', label.getAttribute('y') - 5); // Simple adjustment, you can refine this
+        adjusted = true;
+      }
+    });
+
+    circleNodes.forEach(circleNode => {
+      if (isOverlapping(label, circleNode)) {
+        // Adjust label position here (e.g., move it down or to the side)
+        console.log ('is overlapping between label and otherLabel', label, circleNode)
+        label.setAttribute('y', label.getAttribute('y') - 5); // Simple adjustment, you can refine this
+        adjusted = true;
+      }
+    });
+
+    // circleNode.forEach(circleNodeChild => {
+    //   if (isOverlapping(label, circleNodeChild)) {
+    //     // Adjust label position here (e.g., move it down or to the side)
+    //     console.log ('is overlapping between circleNode and label', label,circle,circleNode)
+    //     label.setAttribute('y', label.getAttribute('y') - 5); // Simple adjustment, you can refine this
+    //     adjusted = true;
+    //   }
+    // });
+
+    // If label was adjusted, check for new overlaps and adjust again if needed
+    if (adjusted) {
+        let secondAdjusted=false;
+
+      otherLabels.forEach(otherLabel => {
+        if (isOverlapping(label, otherLabel)) {
+          secondAdjusted=true
+        }
+      });
+
+      circleNodes.forEach(circleNode => {
+      if (isOverlapping(label, circleNode)) {
+        secondAdjusted=true
+      }
+      if (secondAdjusted===true){
+        label.remove();
+      }
+    });
+
+    }
+  });
+
+//Function to check element overlap
+function isOverlapping(element1, element2) {
+  const bbox1 = element1.getBBox();
+  const bbox2 = element2.getBBox();
+  return !(bbox1.x + bbox1.width < bbox2.x ||
+           bbox1.x > bbox2.x + bbox2.width ||
+           bbox1.y + bbox1.height < bbox2.y ||
+           bbox1.y > bbox2.y + bbox2.height);
+}
 
 //Create increasing/declining population reference line
 
@@ -239,12 +420,12 @@ svg.append("path")
     console.log (densityData)
 
   // show the shape of density map
-  svg.insert("g", "g")
-    .selectAll("path")
-    .data(densityData)
-    .enter().append("path")
-      .attr("d", d3.geoPath())
-      .attr("fill", function(d) { console.log (d.value);return colorDensityMap(d.value); }).attr('opacity', "0.2")
+//   svg.insert("g", "g")
+//     .selectAll("path")
+//     .data(densityData)
+//     .enter().append("path")
+//       .attr("d", d3.geoPath())
+//       .attr("fill", function(d) { console.log (d.value);return colorDensityMap(d.value); }).attr('opacity', "0.2")
 
 
 //Add graph title 
@@ -254,8 +435,12 @@ svg.append("text")
         .attr("text-anchor", "middle")  
         .style("font-size", "16px") 
         .style("text-decoration", "underline")  
-        .text("Birth Rate to Death Rate Scaterplot,"+" YEAR: "+year);
+        .text("Birth Rate to Death Rate Scaterplot:"+" YEAR "+year);
 
+
+
+
+//Create timeline bar
 
 
 console.log ('end of JS init')
