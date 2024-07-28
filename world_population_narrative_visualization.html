@@ -109,7 +109,8 @@ body {
  var dataPerYear;
  var region;
  var yearTest=['1950'];//default value of year
- var yearMartini=['1950','1965','1981','1997','2021']
+var yearMartini=['1950','1965','1981','1997','2021']
+//  var yearMartini=['1950','1975','2000','2021']
  var yearsAll=[];
  var firstSceneBool=true;
  var circleRadiusScale;
@@ -122,6 +123,12 @@ var yAxisDomain;
 var yAxisRange;
 var xAxis;
 var yAxis;
+var globalTop3Centroid=[];
+var globalMedian3Centroid=[];
+var annotationVariables;
+var globalCircle;
+
+
 
  async function dataRequestandInit(yearList)
  {
@@ -161,7 +168,7 @@ yearList.forEach( (eachYear)=>{
 )
 }
 
-dataRequestandInit(yearTest);
+dataRequestandInit(yearMartini);
 
 //annotation
 var type = d3.annotationCalloutCircle
@@ -202,6 +209,12 @@ var type = d3.annotationCalloutCircle
         .attr("height", height + marginTop + marginBottom)
       .append("g")
         .attr("transform", `translate(${marginLeft}, ${marginTop})`)
+
+         globalCircle = svg.append('circle')
+          .attr('fill', 'red')
+          .attr('r', 6)
+          .attr('style','position: relative; z-index: 99;')
+          .raise()
 
 //axis setup
 // var xAxisDomain = [0, d3.max(data,function(d) { return +d['Crude Birth Rate (births per 1,000 population)']; })];
@@ -344,7 +357,7 @@ svg.append("text")
         .attr("x", (width / 2))             
         .attr("y", 0 - (marginTop / 2))
         .attr("text-anchor", "middle")
-        .attr("class", "")
+        .attr("class", "dynamicComponent")
         .style("font-size", "16px") 
         .style("text-decoration", "underline")  
         .text("Birth Rate to Death Rate Scaterplot:"+" YEAR "+year);
@@ -490,52 +503,145 @@ function isOverlapping(element1, element2) {
 
 
 
-var densestContour = densityData.reduce((a, b) => a.value > b.value ? a : b);
-console.log(densestContour.coordinates[0])
-console.log(densityData)
-console.log(densestContour)
-console.log([...densestContour.coordinates[0][0]])
+// var densestContour = densityData.reduce((a, b) => a.value > b.value ? a : b);
+// var densestContour= densityData.reduce((acc, curr) => acc + curr.value, 0) / densityData.length;
+// console.log(densestContour.coordinates[0])
+// console.log(densityData)
+// console.log(densestContour)
+// console.log([...densestContour.coordinates[0][0]])
 
-const referenceLineData = [[0, 0], [axisSyncDomain, axisSyncDomain]]; // Adjust points as needed
-const lineGenerator2 = d3.line()
-  .x(d => d[0])
-  .y(d => d[1]);
+// const referenceLineData = [[0, 0], [axisSyncDomain, axisSyncDomain]]; // Adjust points as needed
+// const lineGenerator2 = d3.line()
+//   .x(d => d[0])
+//   .y(d => d[1]);
 
-svg.append("path")
-.attr("class", "tryerLine")
-  .attr("d", lineGenerator2([...densestContour.coordinates[0][0]]))
-  .attr("stroke", "red") // Adjust color as needed
-  .attr("stroke-dasharray", "5,5"); // Optional: dashed line
-
-
-// Calculate the centroid of the densest contour
-// const centroid = d3.polygonCentroid(densestContour.coordinates[0][0]);
-const centroid = d3.polygonCentroid([...densestContour.coordinates[0][0]]);
-console.log(centroid)
-// Convert centroid coordinates to pixel coordinates
-const x = xAxis(centroid[0]);
-const y = yAxis(centroid[1]);
-
-console.log("Densest location coordinates:",x,y, centroid[0], centroid[1]);
+// svg.append("path")
+// .attr("class", "tryerLine")
+//   .attr("d", lineGenerator2([...densestContour.coordinates[0][0]]))
+//   .attr("stroke", "red") // Adjust color as needed
+//   .attr("stroke-dasharray", "5,5"); // Optional: dashed line
 
 
+// // Calculate the centroid of the densest contour
+// // const centroid = d3.polygonCentroid(densestContour.coordinates[0][0]);
+// const centroid = d3.polygonCentroid([...densestContour.coordinates[0][0]]);
+// console.log(centroid)
+// // Convert centroid coordinates to pixel coordinates
+// const x = xAxis(centroid[0]);
+// const y = yAxis(centroid[1]);
 
-// Define annotation for densest location
+// console.log("Densest location coordinates:",x,y, centroid[0], centroid[1]);
+
+
+// // Define annotation for densest location
+// var annotations = [{
+//   note: {
+//     label: "Densest Location",
+//     title: 'Densest number of country'
+//   },
+//   x: centroid[0], // Use calculated x directly
+//   y: centroid[1], // Use calculated y directly
+//   dy: 100,
+//   dx: 250,
+//   className: "show-bg",
+//   subject: { radius: 50, radiusPadding: -50 },
+//   color: ['red'],
+//   connector:{end: "arrow"}
+// }]
+
+
+// const makeAnnotations = d3.annotation()
+//   .editMode(true)
+//   .notePadding(15)
+//   .type(type)
+//   .annotations(annotations)
+
+// // makeAnnotations.annotations([
+// //     {
+// //       ...densestAnnotation,
+// //       x: d => x,
+// //       y: d => y,
+// //     }
+// //   ]);
+
+// svg.append("g")
+//   .attr("class", "annotation-group")
+//   .call(makeAnnotations.annotations(annotations));
+
+
+// Top 3 density countour annotation
+// Sort the densityData by value in descending order
+var sortedDensityData = densityData.sort((a, b) => b.value - a.value);
+// Get the top 3 densest contours
+// var top3DensestContours = sortedDensityData.slice(0, 3);
+console.log (sortedDensityData)
+var top3DensestContours = [];
+ top3DensestContours= [sortedDensityData[0],sortedDensityData[parseInt((sortedDensityData.length)/2)],sortedDensityData[sortedDensityData.length-1]];
+console.log (top3DensestContours)
+var top3Centroid = [];
+
+for (const contour of top3DensestContours) {
+    console.log ('computing top3Centroid for: ', year, contour)
+    console.log ('computing top3Centroid for: ', year, contour['coordinates'])
+    let countourGroup=[...contour.coordinates[0]];
+    console.log (countourGroup)
+    let tempCoordinates=[];
+    tempCoordinates=await d3.polygonCentroid(...countourGroup);
+    console.log (tempCoordinates)
+    top3Centroid.push(tempCoordinates);
+    }
+    console.log(top3Centroid)
+console.log(top3DensestContours)
+console.log (top3Centroid)
+await globalTop3Centroid.push(top3Centroid)
+console.log(globalTop3Centroid)
+
+var referenceny=50
+var referencenx=50
+
 var annotations = [{
   note: {
-    label: "Densest Location",
-    title: 'Densest number of country'
+    label: "HIGHEST density number of country",
+    title: year
   },
-  x: centroid[0], // Use calculated x directly
-  y: centroid[1], // Use calculated y directly
-  dy: 100,
-  dx: 250,
+  x: top3Centroid[0][0], // Use calculated x directly
+  y: top3Centroid[0][1], // Use calculated y directly
+  nx: xAxis(referencenx-10),
+  ny: yAxis(referenceny-40),
   className: "show-bg",
   subject: { radius: 50, radiusPadding: -50 },
   color: ['red'],
   connector:{end: "arrow"}
-}]
-
+},
+{
+  note: {
+    label: 'MEDIAN density of number of country',
+    title: year
+  },
+  x: top3Centroid[1][0], // Use calculated x directly
+  y: top3Centroid[1][1], // Use calculated y directly
+  nx: xAxis(referencenx-5),
+  ny: yAxis(referenceny-25),
+  className: "show-bg",
+  subject: { radius: 30, radiusPadding: -30 },
+  color: ['maroon'],
+  connector:{end: "arrow"}
+},
+{
+  note: {
+    label: 'LOWEST density of number of country',
+    title: year
+  },
+  x: top3Centroid[2][0], // Use calculated x directly
+  y: top3Centroid[2][1], // Use calculated y directly
+  nx: xAxis(referencenx-0),
+  ny: yAxis(referenceny-10),
+  className: "show-bg",
+  subject: { radius: 10, radiusPadding: -10 },
+  color: ['orange'],
+  connector:{end: "arrow"}
+}
+]
 
 const makeAnnotations = d3.annotation()
   .editMode(true)
@@ -543,21 +649,58 @@ const makeAnnotations = d3.annotation()
   .type(type)
   .annotations(annotations)
 
-// makeAnnotations.annotations([
-//     {
-//       ...densestAnnotation,
-//       x: d => x,
-//       y: d => y,
-//     }
-//   ]);
-
-svg.append("g")
+  var localAnnotationVariables= svg.append("g")
   .attr("class", "annotation-group")
-  .call(makeAnnotations.annotations(annotations));
+  .call(await makeAnnotations.annotations(annotations));
 
-  
+  //Inspired and adapted from https://stackoverflow.com/questions/70415772/d3-js-animate-a-circle-along-x-y-coordinates
+  // add path
+
+  console.log ('globalTop3Centroid before annotation for loop is: ',globalTop3Centroid)
+for (const iter of globalTop3Centroid){
+    console.log (iter)
+
+    if (!globalMedian3Centroid.includes(iter[1]))
+    {
+        globalMedian3Centroid.push(iter[1]);
+        console.log (globalMedian3Centroid)
+    }
+    
+}
+console.log ('globalTop3Centroid is: ', globalTop3Centroid)
+console.log ('globalMedian3Centroid is: ', globalMedian3Centroid)
+
+const animationPathGenerator = d3.line()
+          .x(d => d[0])
+          .y(d => d[1]);
+
+  const annotationTracePath = await svg.append('path')
+          .attr('d', animationPathGenerator(globalMedian3Centroid))
+          .attr('stroke', 'red')
+          .attr('fill', 'none');
+
+      // draw circle at initial location
 
 
+    console.log (localAnnotationVariables)
+    console.log(annotationTracePath.node())
+
+      // animate
+      globalCircle.raise().transition()
+          .ease(d3.easeLinear)
+          .duration(5000)
+          .attrTween('transform', translateAlong(annotationTracePath.node()));
+
+      // https://bl.ocks.org/mbostock/1705868
+      function translateAlong(path) {
+        const length = path.getTotalLength();
+        return function() {
+          return function(t) {
+            const {x, y} = path.getPointAtLength(t * length);
+            return `translate(${x},${y})`;
+          }
+        }
+      }
 
 
 
