@@ -8,7 +8,7 @@
 <style>
     html
 {
-    margin: 0px; padding: 0px
+    margin: 0px; padding: 0px; height: 100%; overflow: hidden
 }
 
 body {
@@ -32,7 +32,10 @@ body {
         border: 2px solid rgb(207, 201, 201); 
         padding:0px ;
         margin:0px ;
-
+        height:70px;
+        text-align: center;
+  vertical-align: center;
+  align-content: center;
     }
 
     .wholeBody{
@@ -45,6 +48,8 @@ body {
   vertical-align: center;
   align-content: center;
     margin-top: 2.5%;
+    width: 100%;
+    height:100%;
 }
 .fixed {
     /* background-color:#4F628E; */
@@ -54,28 +59,100 @@ body {
     /* background-color:#7887AB; */
     flex-grow: 1;
 }
-
+.box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* background-color: brown; */
+}
 
     .allContent {
         margin: auto;
         /* border: 3px solid black; */
         padding:0px ;
         margin:0px ;
+        height:100%;
     }
     #D3container{
         margin: auto;
         /* border: 3px solid green; */
         padding: 10px;
+        flex-direction: row;
+        width: 100%;
             }
 
     .narrative{
-        width:20%;
+        width:4%;
         /* background-color:red; */
     }
 
+    #backButton{
+    position: relative;
+    left: 10px;
+    top:300px;
+    height:75px;
+    width:100px;
+    background-color:grey;
+    border: black;
+    }
+
+    #nextButton{
+    position: relative;
+    left: 0px;
+    margin-left:-30px;
+    top:300px;
+    height:75px;
+    width:100px;
+    background-color:yellow;
+    border: dashed red;
+    }
+
     .rightGutter{
-        width:20%;
+        width:5%;
         /* background-color:yellow; */
+    }
+
+    .rightNarrative{
+        width:30%;
+        padding:10 px;
+    }
+
+    .rightMargin{
+        width:1%;
+        /* background-color:yellow; */
+    }
+    .densityMapsvg{
+        /* outline: 2px solid grey;
+        outline-offset: -1px; */
+    }
+
+    .falseFooter{
+        margin: 0 auto;
+        height:300px;
+        width:100%;
+        display:flex;
+    text-align: center;
+  vertical-align: center;
+  align-content: center;
+  align-items: center;
+  justify-content: center;
+    }
+
+    .timelineSliderSVG{
+        margin: 0 auto;
+        display:flex;
+    text-align: center;
+  vertical-align: center;
+  align-content: center;
+  align-items: center;
+  justify-content: center;
+  height:100px;
+    }
+
+    .content{
+        text-align: justify;
+        text-justify: inter-word;
+        padding:25px 50px 75px 100px;
     }
 
 </style>
@@ -86,15 +163,40 @@ body {
 <div class="allContent"> 
     <div class="title center">
         <h1>World Population, Growth, and Demographic Changes Throughout Time (1950 to 2021)</h1>
-        </div>
+    </div>
 
-    <div class="mainContainer">
+
+    <div class="mainContainer box">
+
     <div id="D3container" class="container">
-    <div id="D3Narrative" class="narrative"></div>
+    <div id="D3Narrative" class="narrative box">
+        <div>
+        <button id='backButton' onclick="changeColor('blue')">Previous Generation</button>
+    </div>
+    </div>
     <div id="D3MainContent" class="fixed" ></div>
-    <div id="D3Misc" class="rightGutter"></div>
+    <div id="D3Misc" class="rightGutter box">
+        <button id='nextButton' onclick="changeColor('blue')">Following Generation</button>
     </div>
+    <div id="rightNarrative" class="rightNarrative">
+        <span class="content">
+        <h2><b><u>Beginning of data: 1951</u></b></h>
+            <h3>Baby Boomers and Gen X Generation</h3>
+            <h4>Introduction to the data and visualization</h4>
+            <p>The scatterplot visualize and hoped to help everyone on understanding the history, the present, and the future prediction of our world population.</p>
+            <p>The data was referred to from the UN database and the visualization provides the insights on various countries population size, birth rate, and death rate.</p>
+            <li>
+                
+            </li>
+
+        </span>
     </div>
+    <div class='rightMargin'></div>
+</div>
+<div id="falseFooter" class="falseFooter"></div>
+
+    </div>
+
 
 
 
@@ -114,6 +216,9 @@ var yearMartini=['1950','1965','1981','1997','2021']
 //https://www.beresfordresearch.com/age-range-by-generation/
 
 //  var yearMartini=['1950','1975','2000','2021']
+
+
+//declaration
  var yearsAll=[];
  var firstSceneBool=true;
  var circleRadiusScale;
@@ -130,7 +235,30 @@ var globalTop3Centroid=[];
 var globalMedian3Centroid=[];
 var annotationVariables;
 var globalCircle;
+var densityColorMapdomain=[0,0.003];
+var slideTimeScale;
+var timelineSliderAxis;
 
+
+
+
+
+for (let i = 1950; i < 2022; i++) {
+        yearsAll.push(i.toString());
+}
+
+
+//global scale
+ // Prepare a color palette for density map
+//  var colorDensityMap = d3.scaleLinear()
+//       .domain([0,0.003]) // Points per square pixel.
+//       .range(["#FFFFFF","#CB4335"])
+
+      var colorDensityMap = d3.scaleLinear()
+      .domain([0,0.003]) // Points per square pixel.
+      .range(["yellow","red"])
+
+      //console.log(querying data)
 
 
  async function dataRequestandInit(yearList)
@@ -152,26 +280,32 @@ var globalCircle;
  color = d3.scaleOrdinal()
     .domain([...Array(7).keys()])
     .range(d3.schemeCategory10)
-
-    for (let i = 1950; i < 2022; i++) {
-        yearsAll.push(i.toString());
-}
     
     console.log ('overall year is: ', yearsAll)
 
-    //main body
+//color scale for density:
+// rgb(255, 255, 255)
+// rgb(242, 208, 205)
+// rgb(229, 161, 154)
+// rgb(216, 114, 104)
+// rgb(203, 67, 53)
+
+
+//main body
 console.log('entering yearsAll loop')
-yearList.map( (eachYear)=>{
-    setTimeout(async () => {
-        await mainRendering(eachYear);
-        console.log('await for mainRendering for the year finished', eachYear)
-  console.log("Delaying for 3 second.");
-}, 5000)
-}
-)
+mainRendering('1950');
+// yearList.map( (eachYear)=>{
+//     setTimeout(async () => {
+//         await mainRendering(eachYear);
+//         console.log('await for mainRendering for the year finished', eachYear)
+//   console.log("Delaying for 10 mili second.");
+// }, 10)
+// }
+// )
 }
 
-dataRequestandInit(yearMartini);
+//init
+dataRequestandInit(['1950']);
 
 //annotation
 var type = d3.annotationCalloutCircle
@@ -194,6 +328,14 @@ var type = d3.annotationCalloutCircle
     var legendMarginLeft=20;
     var legendMarginRight=20;
 
+    var colorDensityMapLegendWidth= 200;
+    var colorDensityMapLegendHeight= 200;
+
+    var timeSliderWidth=1200;
+
+
+
+//main function and other functions
     async function mainRendering(year)
     {
     if (year!='1950'){
@@ -208,13 +350,13 @@ var type = d3.annotationCalloutCircle
     svg = d3.select("#D3MainContent")
       .append("svg")
       .attr("class", "svgD3MainContent") 
-        .attr("width", width + marginLeft + marginRight)
+        .attr("width", width + marginLeft + marginRight) //give ad hoc 100 for slider
         .attr("height", height + marginTop + marginBottom)
       .append("g")
         .attr("transform", `translate(${marginLeft}, ${marginTop})`)
 
          globalCircle = svg.append('circle')
-          .attr('fill', 'red')
+          .attr('fill', 'maroon')
           .attr('r', 10)
           .attr('style','position: relative; z-index: 99;')
           .raise()
@@ -264,6 +406,100 @@ svg.append("text")
     .text('Crude Birth Rate (births per 1,000 population)')
 
 
+// Create timeline slider
+
+// Time scale
+slideTimeScale=d3.scaleLinear().domain([1950,2021]).range([0,timeSliderWidth-100]);//give margin for the actual svg
+
+
+// Rerserve the SVG space
+const timelineSliderSVG = d3.select(".falseFooter")
+      .append("svg").attr("class", "timelineSliderSVG")
+      .attr('width', timeSliderWidth)
+      .attr('height', 300)
+        .attr("transform", `translate(${-200}, ${-100})`)
+
+var timelineSliderGroup=timelineSliderSVG.append('g').attr("class", "timelineSliderSVG").attr("transform", `translate(${50}, ${25})`);
+
+// const timelineSliderTrack = timelineSliderGroup.append('rect')
+//   .attr('width', 1000)
+//   .attr('height', 10)
+//   .attr('rx', 5)
+//   .attr('fill', '#ccc')
+// .attr("transform", `translate(${0}, ${0})`)
+// .attr('class', 'timelineSlider');
+
+// const timelineSliderMarker = timelineSliderGroup.append('rect')
+//   .attr('width', 3)
+//   .attr('rx', 2)
+//   .attr('height', 60)
+//   .attr('fill', 'red')
+// .attr("transform", `translate(${0}, ${-1.5})`)
+// .attr('class', 'timelineSlider')
+// .attr("x", (d, i) => {return slideTimeScale(d) }) // -15 to offset the rectangle to center it; +30 to offset rectangle width
+// .raise();
+
+// const timelineSliderText = timelineSliderGroup.selectAll('text').data(yearList)
+//   .enter()
+//   .append("text")
+//   .attr("x", (d, i) => {return slideTimeScale(d) }) // -15 to offset the rectangle to center it; +30 to offset rectangle width
+//   .attr("y", 5+20+10) //10 offset from bar x,y origin point 
+//   .text(d=>d)
+//   .raise();
+
+// const timelineSliderHandle = timelineSliderGroup.append('circle')
+// .attr("transform", `translate(${0}, ${70})`)
+//   .attr('r', 30)
+//   .attr('fill', '#333')
+//   .attr('class', 'timelineSliderHandle')
+//   .raise();
+
+const timelineSliderAnnotationLine = timelineSliderGroup.selectAll().data(yearMartini).enter().append('rect')
+.attr('x',(d,i)=>{return (slideTimeScale(d)-1.5)})
+.attr('class', 'timelineSliderAnnotationLine')
+    .attr('width', 3)
+  .attr('rx', 2)
+  .attr('height', 60)
+  .attr('fill', 'red')
+.attr('class', 'timelineSlider').attr('opacity', "0.2")
+.attr("transform", `translate(${0}, ${0})`).lower(); // -15 to offset the rectangle to center it; +30 to offset rectangle width
+
+
+timelineSliderGroup.append("g")
+    .attr("class", "xAxis") 
+    .call(d3.axisBottom(slideTimeScale));
+
+const timelineSlidertext = timelineSliderGroup.selectAll().data(yearMartini).enter().append('text')
+.attr('x',(d,i)=>{return slideTimeScale(d)})
+.attr("transform", `translate(${0}, ${60})`)
+  .attr('class', 'timelineSliderHandle')
+  .text((d,i)=>{return d})
+  .attr("style", "dominant-baseline: hanging; text-anchor: middle;  font-weight: 900;") // Text alignment and styling
+  .attr("font-size", 20)
+  .attr('border', 'dashed red')
+  .raise();
+
+
+
+  const timelineSliderHandle = timelineSliderGroup.selectAll().data(yearMartini).enter().append('circle')
+.attr('x',(d,i)=>{return slideTimeScale(d)})
+.attr("transform", `translate(${0}, ${-8})`)
+  .attr('r', 10)
+  .attr('fill', 'purple')
+  .attr('id', 'timelineSliderHandle')
+  .attr('class', 'timelineSliderHandle')
+  .attr("style", "dominant-baseline: hanging; text-anchor: middle;  font-weight: 900;") // Text alignment and styling
+  .raise();
+
+//   xAxis=d3.scaleLinear().domain(xAxisDomain).range(xAxisRange);
+// svg.append("g")
+//     .attr("class", "xAxis") 
+//     .attr("transform", `translate(0, ${height})`)
+//     .call(d3.axisBottom(xAxis));
+
+
+
+
 // //color scale to separate by regions
 // const color = d3.scaleOrdinal()
 //     .domain([...Array(7).keys()])
@@ -285,7 +521,7 @@ svgLegend = d3.select("#D3MainContent")
         .attr("width", legendWidth)
         .attr("height", height + marginTop + marginBottom)
       .append("g")
-        .attr("transform", `translate(${legendWidth/2},0)`)
+        .attr("transform", `translate(0,0)`)
         // .attr("transform", `translate(${legendWidth/2}, ${(height+ marginTop + marginBottom)/2})`)
 
 
@@ -302,7 +538,9 @@ var circleLegend = svgLegend.append("g")
     .attr("r",  (d) => {return circleRadiusScale(d)})
     .attr("stroke", "black")
     .attr("stroke-width", 1.5)
-    .attr("fill", "none");
+    .attr("fill", "none")
+    .attr("transform", `translate(${legendWidth/2},0)`)
+    ;
     
 var circleLegendText=svgLegend.append("g")
     .attr("style", "dominant-baseline: hanging; text-anchor: middle;") // Text alignment and styling
@@ -313,7 +551,9 @@ var circleLegendText=svgLegend.append("g")
     .attr("dy", "0.35em")
     .attr("x",0)
     .attr("y", d => legendHeight - marginBottom - 2 * circleRadiusScale(d) + 3) // Position text below circle
-    .text(d=>d); // Display the data value
+    .text(d=>d)
+    .attr("transform", `translate(${legendWidth/2},0)`)
+    ;
 
     var circleLegendTitle=svgLegend.append("g")
     .attr("class", "circleLegendTitle")
@@ -325,7 +565,8 @@ var circleLegendText=svgLegend.append("g")
     .attr("dy", "0.35em")
     .attr("x",0)
     .attr("y", d => legendHeight - marginBottom - 2 * circleRadiusScale(d) + 3 - 25) // Position text below circle
-    .text('Size of Population'); // Display the data value
+    .text('Size of Population')
+    .attr("transform", `translate(${legendWidth/2},0)`); // Display the data value
 
 // svg.append('g')
 //     .selectAll("circle")
@@ -347,9 +588,63 @@ const lineGenerator = d3.line()
 
 svg.append("path")
   .attr("d", lineGenerator(referenceLineData))
-  .attr("stroke", "red") // Adjust color as needed
+  .attr("stroke", "brown") // Adjust color as needed
   .attr("stroke-dasharray", "5,5"); // Optional: dashed line
-//required init ends
+
+
+
+
+
+
+// Reserve the SVG space inside SVG legend for density heatmap data legend
+var colorDensityMapLegendBarSvg= svgLegend.append("svg").append('g')
+  .attr("class", "densityMapsvg")
+  .attr("width", colorDensityMapLegendWidth)
+  .attr("height", colorDensityMapLegendHeight)
+  .attr("transform", `translate(0,${marginTop+(legendHeight/2)+85})`)
+  .raise();
+
+  
+
+//create the actual legend bar
+var colorDensityMapLegendBar= colorDensityMapLegendBarSvg.selectAll("rect")
+  .data([0,0.00075,0.0015,0.00225,0.003])
+  .enter()
+  .append("rect")
+  .attr("x", (d, i) => (i * 30)+25) // 25 is offset to center the bar into svgLegend
+  .attr("y", 5)
+  .attr("width", 30)
+  .attr("height", 20)
+  .attr("stroke", "black")
+  .attr("stroke-width", 1)
+  .attr("fill", d => colorDensityMap(d)).raise();
+
+  var colorDensityMapLegendnumber= colorDensityMapLegendBarSvg.selectAll('number').data([0,0.00075,0.0015,0.00225,0.003])
+  .enter()
+  .append("text")
+  .attr("x", (d, i) => {if (i===0){return (i * 30)} else if (i===4){return (i * 30)+30} }) // -15 to offset the rectangle to center it; +30 to offset rectangle width
+  .attr("y", 5+20+10) //10 offset from bar x,y origin point 
+  .text((d,i)=>{
+    if (i===0){
+        return 'Lowest'
+    }
+    if (i===(4)){
+        return 'Highest'
+    }
+  })
+  .raise();
+
+
+  var colorDensityMapLegendText= colorDensityMapLegendBarSvg.append("text")
+  .attr("x", parseInt(colorDensityMapLegendWidth/2))
+  .attr("y", 0) // Adjust title position to be on top for the legend bar
+  .attr("text-anchor", "middle")
+  .attr("font-weight", "bold")
+  .text("Density of country number")
+  .raise();
+
+
+//END OF STATICS COMPONENT, DO NOT DELETE THE CURLY  
     }
 
 
@@ -480,11 +775,6 @@ function isOverlapping(element1, element2) {
 
 
 //Create density map
-  // Prepare a color palette
-  const colorDensityMap = d3.scaleLinear()
-      .domain([0,0.001]) // Points per square pixel.
-      .range(["#FDE725", "#440154"])
-
   // compute the density data
   const densityData = d3.contourDensity()
     .x(function(d) { console.log (d['Crude Death Rate (deaths per 1,000 population)']); return xAxis(d['Crude Death Rate (deaths per 1,000 population)']); })
@@ -609,7 +899,7 @@ var annotations = [{
   },
   x: top3Centroid[0][0], // Use calculated x directly
   y: top3Centroid[0][1], // Use calculated y directly
-  nx: xAxis(referencenx-10),
+  nx: xAxis(referencenx-13),
   ny: yAxis(referenceny-40),
   className: "show-bg",
   subject: { radius: 50, radiusPadding: -50 },
@@ -623,11 +913,11 @@ var annotations = [{
   },
   x: top3Centroid[1][0], // Use calculated x directly
   y: top3Centroid[1][1], // Use calculated y directly
-  nx: xAxis(referencenx-5),
+  nx: xAxis(referencenx-8),
   ny: yAxis(referenceny-25),
   className: "show-bg",
   subject: { radius: 30, radiusPadding: -30 },
-  color: ['maroon'],
+  color: ['rgb(255, 128, 0)'],
   connector:{end: "arrow"}
 },
 {
@@ -637,10 +927,10 @@ var annotations = [{
   },
   x: top3Centroid[2][0], // Use calculated x directly
   y: top3Centroid[2][1], // Use calculated y directly
-  nx: xAxis(referencenx-0),
+  nx: xAxis(referencenx-3),
   ny: yAxis(referenceny-5),
   className: "show-bg",
-  subject: { radius: 10, radiusPadding: -10 },
+  subject: { radius: 10, radiusPadding: -10},
   color: ['orange'],
   connector:{end: "arrow"}
 }
@@ -654,6 +944,9 @@ const makeAnnotations = d3.annotation()
 
   var localAnnotationVariables= svg.append("g")
   .attr("class", "annotation-group")
+  .style("font-size", 15)
+  .style("font-weight", 'bold')
+  .style("filter", 'saturate(4)')
   .call(await makeAnnotations.annotations(annotations)).attr("class", "dynamicComponent");
 
   //Inspired and adapted from https://stackoverflow.com/questions/70415772/d3-js-animate-a-circle-along-x-y-coordinates
@@ -673,6 +966,19 @@ for (const iter of globalTop3Centroid){
 console.log ('globalTop3Centroid is: ', globalTop3Centroid)
 console.log ('globalMedian3Centroid is: ', globalMedian3Centroid)
 
+//animation for annotation
+const annotationGroup = d3.selectAll('.annotation-group');
+
+// Create a transition object
+const annotationAnimationObject = d3.transition()
+  .duration(1000) // Adjust duration as needed
+  .ease(d3.easeLinear); // Adjust easing function as needed
+
+// Select the annotation note and transition and sytle
+const annotationNote = await annotationGroup.transition(annotationAnimationObject).style('opacity', 1);
+
+
+
 const animationPathGenerator = d3.line()
           .x(d => d[0])
           .y(d => d[1]);
@@ -684,14 +990,14 @@ const animationPathGenerator = d3.line()
 
       // draw circle at initial location
 
-
     console.log (localAnnotationVariables)
     console.log(annotationTracePath.node())
 
-      // animate
+
+      // animation for circle
       globalCircle.raise().transition()
-          .ease(d3.easeLinear)
-          .duration(4500)
+          .ease(d3.easePolyOut.exponent(4))
+          .duration(3000)
           .attrTween('transform', translateAlong(annotationTracePath.node()));
 
       // https://bl.ocks.org/mbostock/1705868
