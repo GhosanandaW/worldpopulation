@@ -12,4 +12,4 @@ The data has been manipulated with logic as follows:
    2. Deleted UN logo and header (not directly pertaining to the data).
    3. Deleted cascaded header to result in Tableau compatible data source.
    4. Pivoted the "age" attribute from each file to result in breakdown of the demographic for each given year.
-4. The data mentioned were joined into joined_world_population_data
+4. The data mentioned were joined into joined_world_population_data# ghosanandaw.github.io
